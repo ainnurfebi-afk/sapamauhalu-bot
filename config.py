@@ -13,8 +13,21 @@ if not BOT_TOKEN:
 # Jika kosong, bot akan menggunakan SQLite lokal (untuk development)
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-# ID admin awal (akan dimasukkan ke tabel admins saat init_db)
-INITIAL_ADMIN_IDS = [815334629, 6532811092]
+# ID admin awal — diambil dari environment variable ADMIN_IDS
+# Format: angka dipisah koma, contoh: 815334629,8665703718
+# Minimal 1 ID harus diisi agar ada admin yang bisa login pertama kali.
+# Setelah bot berjalan, admin bisa menambah admin lain via /addadmin di Telegram.
+_raw_ids = os.getenv("ADMIN_IDS", "")
+INITIAL_ADMIN_IDS = [
+    int(uid.strip()) for uid in _raw_ids.split(",") if uid.strip().isdigit()
+]
+if not INITIAL_ADMIN_IDS:
+    raise RuntimeError(
+        "ADMIN_IDS tidak ditemukan atau kosong!\n"
+        "Set environment variable ADMIN_IDS=<user_id_1>,<user_id_2>\n"
+        "Contoh: ADMIN_IDS=815334629,8665703718\n"
+        "User ID bisa dicek via @userinfobot di Telegram."
+    )
 
 # Urutan tampil media: lebih kecil = tampil lebih dulu
 # foto → gif → video → voice/audio → teks
