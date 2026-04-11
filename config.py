@@ -14,7 +14,7 @@ if not BOT_TOKEN:
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # ID admin awal (akan dimasukkan ke tabel admins saat init_db)
-INITIAL_ADMIN_IDS = [815334629, 8665703718]
+INITIAL_ADMIN_IDS = [815334629, 6532811092]
 
 # Urutan tampil media: lebih kecil = tampil lebih dulu
 # foto → gif → video → voice/audio → teks
