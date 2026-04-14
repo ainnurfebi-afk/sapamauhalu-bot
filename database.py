@@ -268,6 +268,17 @@ def delete_story(story_id: int) -> bool:
     return affected > 0
 
 
+def update_story_title(story_id: int, new_title: str) -> bool:
+    ph = _ph()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE stories SET title = {ph} WHERE id = {ph}", (new_title, story_id))
+    affected = cur.rowcount
+    conn.commit()
+    conn.close()
+    return affected > 0
+
+
 # ─── Parts ────────────────────────────────────────────────────────────────────
 
 def create_part(story_id: int, text: str) -> int:
