@@ -112,16 +112,18 @@ async def send_part(
             logger.warning(f"Gagal kirim media {mtype}: {e}")
 
     # ── Bangun teks narasi ────────────────────────────────────────────────────
+    # Teks disimpan dalam format HTML (mendukung bold/italic/underline)
     part_text = part['text'] or ""
-    header = f"📜 *Part {part_num}*"
+    header = f"📜 <b>Part {part_num}</b>"
 
     if is_ending:
         story = db.get_story_by_id(story_id)
-        story_title = story['title'] if story else "Cerita"
+        import html as html_module
+        story_title = html_module.escape(story['title']) if story else "Cerita"
         body = f"{header}\n\n{part_text}" if part_text else header
         body += (
             "\n\n───────────────\n"
-            f"🎉 *Tamat!* Kamu sudah menyelesaikan _{story_title}_.\n\n"
+            f"🎉 <b>Tamat!</b> Kamu sudah menyelesaikan <i>{story_title}</i>.\n\n"
             "Pilih aksi:"
         )
         end_keyboard = InlineKeyboardMarkup([
@@ -129,13 +131,13 @@ async def send_part(
             [InlineKeyboardButton("📚 Cerita Lain", callback_data="back_to_stories")],
         ])
         msg = await update.effective_chat.send_message(
-            text=body, parse_mode="Markdown", reply_markup=end_keyboard
+            text=body, parse_mode="HTML", reply_markup=end_keyboard
         )
     else:
         body = f"{header}\n\n{part_text}" if part_text else header
         msg = await update.effective_chat.send_message(
             text=body,
-            parse_mode="Markdown",
+            parse_mode="HTML",
             reply_markup=_build_choices_keyboard(choices)
         )
 
@@ -339,10 +341,12 @@ async def choice_callback_handler(update: Update, context: ContextTypes.DEFAULT_
 
     # Tandai pilihan yang dipilih di pesan lama (hilangkan tombol)
     try:
-        old_text = query.message.text or ""
+        import html as html_module
+        # Gunakan text_html agar formatting bold/italic yang sudah ada di pesan tetap terjaga
+        old_html = query.message.text_html or query.message.text or ""
         await query.edit_message_text(
-            old_text + f"\n\n*→ {choice['choice_text']}*",
-            parse_mode="Markdown",
+            old_html + f"\n\n<i>→ {html_module.escape(choice['choice_text'])}</i>",
+            parse_mode="HTML",
             reply_markup=None
         )
     except Exception:
