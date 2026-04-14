@@ -64,7 +64,7 @@ def build_inputcerita_conv() -> ConversationHandler:
                 MessageHandler(TEXT_ONLY, adm.ic_receive_title),
             ],
 
-            # IC_WAIT_TEXT (1): terima teks narasi
+            # IC_WAIT_TEXT (1): terima teks narasi (dengan formatting HTML)
             adm.IC_WAIT_TEXT: [
                 MessageHandler(TEXT_ONLY, adm.ic_receive_text),
             ],
@@ -117,6 +117,27 @@ def build_editpart_conv() -> ConversationHandler:
     )
 
 
+def build_edittitle_conv() -> ConversationHandler:
+    """Conversation untuk /edittitle — edit judul cerita."""
+    return ConversationHandler(
+        entry_points=[
+            CommandHandler("edittitle", adm.edittitle_start),
+            CallbackQueryHandler(adm.admin_edittitle_callback, pattern=r"^admin_edittitle$"),
+        ],
+        states={
+            adm.ET_WAIT_STORY: [
+                CallbackQueryHandler(adm.et_story_selected, pattern=r"^et_story_\d+$"),
+            ],
+            adm.ET_WAIT_TITLE: [
+                MessageHandler(TEXT_ONLY, adm.et_receive_title),
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", adm.cancel_handler)],
+        allow_reentry=True,
+        per_message=False,
+    )
+
+
 def main():
     from config import BOT_TOKEN
     logger.info("Memulai Interactive Story Bot...")
@@ -129,12 +150,14 @@ def main():
     # ConversationHandlers harus didaftarkan SEBELUM handler biasa
     app.add_handler(build_inputcerita_conv())
     app.add_handler(build_editpart_conv())
+    app.add_handler(build_edittitle_conv())
 
     # ── Admin commands ────────────────────────────────────────────────────────
     app.add_handler(CommandHandler("admin",      adm.admin_handler))
     app.add_handler(CommandHandler("addadmin",   adm.addadmin_handler))
     app.add_handler(CommandHandler("listcerita", adm.listcerita_handler))
     app.add_handler(CommandHandler("preview",    adm.preview_handler))
+    app.add_handler(CommandHandler("export",     adm.export_handler))
 
     # ── User commands ─────────────────────────────────────────────────────────
     app.add_handler(CommandHandler("start",    usr.start_handler))
@@ -144,11 +167,12 @@ def main():
     # ── Admin callbacks (non-conversation) ───────────────────────────────────
     app.add_handler(CallbackQueryHandler(
         adm.admin_panel_callback,
-        pattern=r"^admin_(list|preview|delete)$"
+        pattern=r"^admin_(list|preview|delete|export)$"
     ))
     app.add_handler(CallbackQueryHandler(adm.preview_story_callback,  pattern=r"^preview_\d+$"))
     app.add_handler(CallbackQueryHandler(adm.confirm_delete_callback, pattern=r"^confirmdelete_\d+$"))
     app.add_handler(CallbackQueryHandler(adm.do_delete_callback,      pattern=r"^dodelete_\d+$"))
+    app.add_handler(CallbackQueryHandler(adm.exportstory_callback,    pattern=r"^exportstory_\d+$"))
 
     # ── User callbacks ────────────────────────────────────────────────────────
     app.add_handler(CallbackQueryHandler(usr.story_callback_handler,    pattern=r"^story_\d+$"))
